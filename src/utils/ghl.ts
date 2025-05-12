@@ -5,6 +5,7 @@ const GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Im
 export const submitToGHL = async (formData: {
   email: string;
   fullName: string;
+  phone: string;
   company?: string;
   message: string;
   serviceInterest?: string;
@@ -19,6 +20,7 @@ export const submitToGHL = async (formData: {
       },
       body: JSON.stringify({
         email: formData.email,
+        phone: formData.phone,
         firstName: formData.fullName.split(' ')[0],
         lastName: formData.fullName.split(' ').slice(1).join(' '),
         company: formData.company,
