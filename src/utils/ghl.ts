@@ -2,6 +2,27 @@ import { trackEvent } from './analytics';
 
 const GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Imc2aFFkalB3c0tOcGRMMWFIZXhhIiwidmVyc2lvbiI6MSwiaWF0IjoxNzQ3MDgwMTcyOTU5LCJzdWIiOiI0bkg3WFllNUlNcTg2aXNpYm5nRCJ9.2b_x2zQ0UkzJAS2A1mV-rys5wCUTgJ5vKr6EbvOkVlg';
 
+const createCompany = async (companyName: string) => {
+  const response = await fetch('https://rest.gohighlevel.com/v1/companies/', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GHL_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: companyName,
+      website: '',
+      type: 'lead'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create company in GHL');
+  }
+
+  return response.json();
+};
+
 const getServiceTag = (serviceInterest: string = '') => {
   const serviceTags: Record<string, string> = {
     'paid-ads': 'Paid Advertising',
@@ -26,6 +47,13 @@ export const submitToGHL = async (formData: {
   budgetRange?: string;
 }) => {
   try {
+    // Create company first if company name is provided
+    let companyId;
+    if (formData.company) {
+      const companyData = await createCompany(formData.company);
+      companyId = companyData.company.id;
+    }
+
     // Create contact
     const contactResponse = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
       method: 'POST',
@@ -38,7 +66,8 @@ export const submitToGHL = async (formData: {
         phone: formData.phone,
         firstName: formData.fullName.split(' ')[0],
         lastName: formData.fullName.split(' ').slice(1).join(' '),
-        companyName: formData.company, // GHL uses 'company' field directly
+        company: formData.company,
+        companyId: companyId, // Link contact to the created company
         tags: [getServiceTag(formData.serviceInterest)],
         source: 'Website Contact Form'
       })
