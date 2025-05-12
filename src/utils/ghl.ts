@@ -2,37 +2,6 @@ import { trackEvent } from './analytics';
 
 const GHL_API_KEY = import.meta.env.VITE_GHL_API_KEY;
 
-const createCompany = async (companyName: string) => {
-  try {
-    const response = await fetch('https://rest.gohighlevel.com/v1/businesses/', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GHL_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        business: {
-          name: companyName,
-          website: '',
-          type: 'lead'
-        }
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('GHL Business Creation Error:', data);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error creating business:', error);
-    return null;
-  }
-};
-
 const getServiceTag = (serviceInterest: string = '') => {
   const serviceTags: Record<string, string> = {
     'paid-ads': 'Paid Advertising',
@@ -57,32 +26,6 @@ export const submitToGHL = async (formData: {
   budgetRange?: string;
 }) => {
   try {
-    // Create business first if company name is provided
-    let businessId;
-    if (formData.company) {
-      const businessData = await createCompany(formData.company);
-      if (businessData?.business) {
-        businessId = businessData.business.id;
-      }
-      // If business creation fails, we'll continue without the business ID
-    }
-
-    // Prepare contact data
-    const contactData = {
-      email: formData.email,
-      phone: formData.phone,
-      firstName: formData.fullName.split(' ')[0],
-      lastName: formData.fullName.split(' ').slice(1).join(' '),
-      businessId: businessId || null,
-      tags: [getServiceTag(formData.serviceInterest)],
-      source: 'Website Contact Form'
-    };
-
-    // Add company name if business creation failed
-    if (!businessId && formData.company) {
-      contactData['company'] = formData.company;
-    }
-
     // Create contact
     const contactResponse = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
       method: 'POST',
@@ -90,7 +33,15 @@ export const submitToGHL = async (formData: {
         'Authorization': `Bearer ${GHL_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(contactData)
+      body: JSON.stringify({
+        email: formData.email,
+        phone: formData.phone,
+        firstName: formData.fullName.split(' ')[0],
+        lastName: formData.fullName.split(' ').slice(1).join(' '),
+        '{{ business.name }}': formData.company,
+        tags: [getServiceTag(formData.serviceInterest)],
+        source: 'Website Contact Form'
+      })
     });
 
     const contactResponseData = await contactResponse.json();
