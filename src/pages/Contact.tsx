@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/ui/Button';
 import { Mail, Phone, MapPin, Calendar, ArrowRight } from 'lucide-react';
 import CalendarBooking from '../components/CalendarBooking';
-import { handleContactForm } from '../utils/forms';
+import { submitToGHL } from '../utils/ghl';
 import { motion, useScroll, useSpring } from 'framer-motion';
 
 const Contact: React.FC = () => {
@@ -35,7 +35,7 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const result = await handleContactForm({
+    const result = await submitToGHL({
       email: formState.email,
       fullName: formState.fullName,
       company: formState.company,
