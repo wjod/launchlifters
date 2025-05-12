@@ -1,33 +1,34 @@
 import { trackEvent } from './analytics';
 
-// Use environment variable instead of hardcoded API key
 const GHL_API_KEY = import.meta.env.VITE_GHL_API_KEY;
 
 const createCompany = async (companyName: string) => {
   try {
-    const response = await fetch('https://rest.gohighlevel.com/v1/companies/', {
+    const response = await fetch('https://rest.gohighlevel.com/v1/businesses/', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${GHL_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: companyName,
-        website: '',
-        type: 'lead'
+        business: {
+          name: companyName,
+          website: '',
+          type: 'lead'
+        }
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('GHL Company Creation Error:', data);
+      console.error('GHL Business Creation Error:', data);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error creating company:', error);
+    console.error('Error creating business:', error);
     return null;
   }
 };
@@ -56,14 +57,14 @@ export const submitToGHL = async (formData: {
   budgetRange?: string;
 }) => {
   try {
-    // Create company first if company name is provided
-    let companyId;
+    // Create business first if company name is provided
+    let businessId;
     if (formData.company) {
-      const companyData = await createCompany(formData.company);
-      if (companyData) {
-        companyId = companyData.company.id;
+      const businessData = await createCompany(formData.company);
+      if (businessData?.business) {
+        businessId = businessData.business.id;
       }
-      // If company creation fails, we'll continue without the company ID
+      // If business creation fails, we'll continue without the business ID
     }
 
     // Prepare contact data
@@ -72,14 +73,14 @@ export const submitToGHL = async (formData: {
       phone: formData.phone,
       firstName: formData.fullName.split(' ')[0],
       lastName: formData.fullName.split(' ').slice(1).join(' '),
-      company: formData.company,
+      businessId: businessId || null,
       tags: [getServiceTag(formData.serviceInterest)],
       source: 'Website Contact Form'
     };
 
-    // Only add companyId if it was successfully created
-    if (companyId) {
-      contactData['companyId'] = companyId;
+    // Add company name if business creation failed
+    if (!businessId && formData.company) {
+      contactData['company'] = formData.company;
     }
 
     // Create contact
