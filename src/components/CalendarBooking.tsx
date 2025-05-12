@@ -1,30 +1,27 @@
-import React from 'react';
-import Cal, { getCalApi } from "@calcom/embed-react";
+import React, { useEffect } from 'react';
 
 const CalendarBooking: React.FC = () => {
-  React.useEffect(() => {
-    (async function () {
-      const cal = await getCalApi();
-      cal("inline", {
-        elementOrSelector: "#cal-booking-placeholder",
-        calLink: "maciej-f8d4ya/30min",
-        config: {
-          theme: "dark",
-          hideEventTypeDetails: false,
-          layout: "month_view",
-        }
-      });
-    })();
+  useEffect(() => {
+    // Load Haazel form embed script
+    const script = document.createElement('script');
+    script.src = 'https://api.haazel.ai/js/form_embed.js';
+    script.type = 'text/javascript';
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   return (
-    <div 
-      id="cal-booking-placeholder" 
-      style={{ width: "100%", height: "100%", minHeight: "600px" }} 
-      data-cal-link="maciej-f8d4ya/30min"
-      data-cal-namespace="maciej-f8d4ya"
-      data-cal-config='{"layout":"month_view","hideEventTypeDetails":false,"theme":"dark"}'
-    />
+    <div style={{ width: '100%', height: '100%', minHeight: '600px' }}>
+      <iframe 
+        src="https://api.haazel.ai/widget/booking/EHYdZVivGHewOqeuhSe7" 
+        style={{ width: '100%', height: '100%', border: 'none', overflow: 'hidden' }} 
+        scrolling="no" 
+        id="EHYdZVivGHewOqeuhSe7_1747087980578"
+      />
+    </div>
   );
 };
 

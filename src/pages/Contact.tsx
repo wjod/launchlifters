@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/ui/Button';
 import { Mail, Phone, MapPin, Calendar, ArrowRight } from 'lucide-react';
 import CalendarBooking from '../components/CalendarBooking';
-import { handleContactForm } from '../utils/forms';
+import { submitToGHL } from '../utils/ghl';
 import { motion, useScroll, useSpring } from 'framer-motion';
 
 const Contact: React.FC = () => {
@@ -16,6 +16,7 @@ const Contact: React.FC = () => {
   const [formState, setFormState] = useState({
     email: '',
     fullName: '',
+    phone: '',
     company: '',
     message: '',
     serviceInterest: '',
@@ -35,9 +36,10 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const result = await handleContactForm({
+    const result = await submitToGHL({
       email: formState.email,
       fullName: formState.fullName,
+      phone: formState.phone,
       company: formState.company,
       message: formState.message,
       serviceInterest: formState.serviceInterest,
@@ -50,6 +52,7 @@ const Contact: React.FC = () => {
       setFormState({
         email: '',
         fullName: '',
+        phone: '',
         company: '',
         message: '',
         serviceInterest: '',
@@ -136,6 +139,22 @@ const Contact: React.FC = () => {
                         className="w-full px-4 py-3 bg-dark-600 border border-dark-500 rounded-md text-light-900 focus:outline-none focus:ring-1 focus:ring-electric-500"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-light-800 mb-2 text-sm">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formState.phone}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 bg-dark-600 border border-dark-500 rounded-md text-light-900 focus:outline-none focus:ring-1 focus:ring-electric-500"
+                      placeholder="(123) 456-7890"
+                    />
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -270,7 +289,7 @@ const Contact: React.FC = () => {
       {/* Calendar Modal */}
       {showCalendar && (
         <div className="fixed inset-0 bg-dark-900/90 z-50 flex items-center justify-center p-4">
-          <div className="bg-dark-800 rounded-xl w-full max-w-4xl h-[80vh] relative">
+          <div className="bg-dark-800 rounded-xl w-full max-w-6xl h-[80vh] relative">
             <button
               onClick={() => setShowCalendar(false)}
               className="absolute top-4 right-4 text-light-600 hover:text-light-900 z-10"
