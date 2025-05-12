@@ -38,7 +38,7 @@ export const submitToGHL = async (formData: {
         phone: formData.phone,
         firstName: formData.fullName.split(' ')[0],
         lastName: formData.fullName.split(' ').slice(1).join(' '),
-        businessName: formData.company, // Map company to businessName
+        '{{ business.name }}': formData.company, // Updated to use correct GHL field
         tags: [getServiceTag(formData.serviceInterest)],
         source: 'Website Contact Form'
       })
