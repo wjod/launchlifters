@@ -1,26 +1,35 @@
 import { trackEvent } from './analytics';
 
-const GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Imc2aFFkalB3c0tOcGRMMWFIZXhhIiwidmVyc2lvbiI6MSwiaWF0IjoxNzQ3MDgwMTcyOTU5LCJzdWIiOiI0bkg3WFllNUlNcTg2aXNpYm5nRCJ9.2b_x2zQ0UkzJAS2A1mV-rys5wCUTgJ5vKr6EbvOkVlg';
+// Use environment variable instead of hardcoded API key
+const GHL_API_KEY = import.meta.env.VITE_GHL_API_KEY;
 
 const createCompany = async (companyName: string) => {
-  const response = await fetch('https://rest.gohighlevel.com/v1/companies/', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${GHL_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      name: companyName,
-      website: '',
-      type: 'lead'
-    })
-  });
+  try {
+    const response = await fetch('https://rest.gohighlevel.com/v1/companies/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GHL_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: companyName,
+        website: '',
+        type: 'lead'
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to create company in GHL');
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('GHL Company Creation Error:', data);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating company:', error);
+    return null;
   }
-
-  return response.json();
 };
 
 const getServiceTag = (serviceInterest: string = '') => {
@@ -51,7 +60,26 @@ export const submitToGHL = async (formData: {
     let companyId;
     if (formData.company) {
       const companyData = await createCompany(formData.company);
-      companyId = companyData.company.id;
+      if (companyData) {
+        companyId = companyData.company.id;
+      }
+      // If company creation fails, we'll continue without the company ID
+    }
+
+    // Prepare contact data
+    const contactData = {
+      email: formData.email,
+      phone: formData.phone,
+      firstName: formData.fullName.split(' ')[0],
+      lastName: formData.fullName.split(' ').slice(1).join(' '),
+      company: formData.company,
+      tags: [getServiceTag(formData.serviceInterest)],
+      source: 'Website Contact Form'
+    };
+
+    // Only add companyId if it was successfully created
+    if (companyId) {
+      contactData['companyId'] = companyId;
     }
 
     // Create contact
@@ -61,23 +89,15 @@ export const submitToGHL = async (formData: {
         'Authorization': `Bearer ${GHL_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        email: formData.email,
-        phone: formData.phone,
-        firstName: formData.fullName.split(' ')[0],
-        lastName: formData.fullName.split(' ').slice(1).join(' '),
-        company: formData.company,
-        companyId: companyId, // Link contact to the created company
-        tags: [getServiceTag(formData.serviceInterest)],
-        source: 'Website Contact Form'
-      })
+      body: JSON.stringify(contactData)
     });
 
+    const contactResponseData = await contactResponse.json();
+
     if (!contactResponse.ok) {
+      console.error('GHL Contact Creation Error:', contactResponseData);
       throw new Error('Failed to create contact in GHL');
     }
-
-    const contactData = await contactResponse.json();
 
     // Create note with all form details
     const noteContent = `
@@ -94,19 +114,24 @@ Client Message:
 ${formData.message}
     `.trim();
 
-    const noteResponse = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactData.contact.id}/notes`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GHL_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        body: noteContent
-      })
-    });
+    try {
+      const noteResponse = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactResponseData.contact.id}/notes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GHL_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          body: noteContent
+        })
+      });
 
-    if (!noteResponse.ok) {
-      throw new Error('Failed to create note in GHL');
+      if (!noteResponse.ok) {
+        console.error('Failed to create note, but contact was created successfully');
+      }
+    } catch (noteError) {
+      console.error('Error creating note:', noteError);
+      // Continue since the contact was created successfully
     }
 
     // Track the event
@@ -115,7 +140,7 @@ ${formData.message}
       service_interest: formData.serviceInterest
     });
 
-    return { success: true, data: contactData };
+    return { success: true, data: contactResponseData };
   } catch (error) {
     console.error('Error submitting to GHL:', error);
     return { success: false, error };
