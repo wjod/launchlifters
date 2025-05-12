@@ -149,5 +149,3 @@ ${formData.message}
 };
 
 export { submitToGHL }
-
-export { submitToGHL }
