@@ -289,7 +289,7 @@ const Contact: React.FC = () => {
       {/* Calendar Modal */}
       {showCalendar && (
         <div className="fixed inset-0 bg-dark-900/90 z-50 flex items-center justify-center p-4">
-          <div className="bg-dark-800 rounded-xl w-full max-w-4xl h-[80vh] relative">
+          <div className="bg-dark-800 rounded-xl w-full max-w-6xl h-[80vh] relative">
             <button
               onClick={() => setShowCalendar(false)}
               className="absolute top-4 right-4 text-light-600 hover:text-light-900 z-10"
