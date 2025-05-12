@@ -38,7 +38,7 @@ export const submitToGHL = async (formData: {
         phone: formData.phone,
         firstName: formData.fullName.split(' ')[0],
         lastName: formData.fullName.split(' ').slice(1).join(' '),
-        'contact.company_name': formData.company,
+        company: formData.company, // GHL uses 'company' field directly
         tags: [getServiceTag(formData.serviceInterest)],
         source: 'Website Contact Form'
       })
@@ -53,15 +53,15 @@ export const submitToGHL = async (formData: {
     // Create note with all form details
     const noteContent = `
 New Contact Form Submission
-
+----------------------------
 Full Name: ${formData.fullName}
 Email: ${formData.email}
 Phone: ${formData.phone}
 Company: ${formData.company || 'N/A'}
 Service Interest: ${getServiceTag(formData.serviceInterest)}
 Budget Range: ${formData.budgetRange || 'N/A'}
-
-Message:
+----------------------------
+Client Message:
 ${formData.message}
     `.trim();
 
