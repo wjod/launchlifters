@@ -147,5 +147,3 @@ ${formData.message}
     return { success: false, error };
   }
 };
-
-export { submitToGHL }
