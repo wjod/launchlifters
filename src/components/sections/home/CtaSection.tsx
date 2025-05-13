@@ -23,7 +23,7 @@ const CtaSection: React.FC = () => {
           
           <p className="text-xl text-light-600 mb-10 max-w-2xl mx-auto">
             Book a free 30-minute strategy call where we'll analyze your current marketing 
-            and identify opportunities for scaling your business.
+            and identify opportunities for scaling your business!
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
